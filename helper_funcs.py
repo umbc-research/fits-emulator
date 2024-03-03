@@ -46,6 +46,10 @@ def setArgs():
     ## REQUIRED ARGUMENTS
     required = parser.add_argument_group('required arguments')
 
+    # Specify number of frames to generate
+    required.add_argument("--ncalibration", '-c', metavar="int", action="store", type=int, required=True,\
+                        help="DEFAULT IS 1.\nNumber of calibration frames to take.",\
+                        )
     # Save Flag
     required.add_argument('--save', default="", action='store', metavar="title",\
                         help="Save FITS of frame",\
@@ -110,4 +114,4 @@ def setArgs():
     return params
 
 def pntProfile(x, y, mux, muy, sx, sy):
-    return 1./ sx/sy/2*np.pi * np.exp( -(((x-mux)**2)/sx/sx + ((y-muy)**2)/sy/sy)/4 )
+    return 1./ sx/sy/2*np.pi * np.exp( -(((x-mux)**2)/sx/sx + ((y-muy)**2)/sy/sy)/4)

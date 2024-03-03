@@ -62,28 +62,77 @@ sigma = (np.pi * params.focalLength * 1000 * params.seeing /params.pixsize / 180
 
 params.logger.info(f"Seeing of {params.seeing}[\'\'/pix] on detector with pixel size {params.pixsize}[um] and on scope with focal len {params.focalLength}[mm] translates to a std of of {sigma}.")
 
-#Create the readnoise frame
-darkFrame = np.random.normal(params.readnoise, np.sqrt(params.readnoise), R.T.shape)
+for i in range(params.ncalibration):
+    params.logger.info(f"Generating the {i}-th set of frames.")
+    #############################################
+    ####   Flat Frames
+    #############################################
+    flatFrame = hf.pntProfile(C.T, R.T, params.width/2, params.height/2, params.width/1.5, params.height/1.5 )
+    flatFrame /= np.mean(flatFrame)
+    flatFrame *= np.random.randint(35000,55000)
 
-#Create the thermal signal frame (scaled with integration time) and add it to the original frame
-darkFrame += np.random.normal(params.thermal, np.sqrt(params.thermal), R.T.shape)*params.intTime
+    #Clip frame to bitdepth and cast to int
+    flatFrame = np.clip(flatFrame, 0, 2**16 - 1)
+    flatFrame = flatFrame.astype(int)
 
-flatFrame = hf.pntProfile(C.T, R.T, params.width/2, params.height/2, params.width/1.5, params.height/1.5 )
-flatFrame /= np.mean(flatFrame)
+    #Save flat frame a FITS file
+    hdu = fits.PrimaryHDU(flatFrame)
+    hdu.header['FRAMETYP'] = "flat"
+    hdu.header['INSTRUME'] = 'fits-emulator'
+    hdu.header['XPIXSZ']    = params.pixsize
+    hdu.header['YPIXSZ']    = params.pixsize
+    hdu.header['EXPTIME']   = params.intTime
+    hdu.header['NAXIS1']   = params.width
+    hdu.header['NAXIS2']   = params.height
+    hdu.header['GAIN']   = 0
+    hdul = fits.HDUList([hdu])
+    hdul.writeto(f"{params.outdir}/{params.save}_flat_{i:02d}.fits")
+    params.logger.info("Generated Flat Frame and saved to "+f"{params.outdir}/{params.save}_flat_{i:02d}.fits")
 
-#Create a clean light pollution frame scaling the avg sky brightness by the integration time
-sourceFrame = np.ones(R.T.shape)*params.pollution * params.intTime
+    #############################################
+    ####   Dark Frames
+    #############################################
+    hdu = hdu.copy()
+    #Create the readnoise frame
+    darkFrame = np.random.normal(params.readnoise, np.sqrt(params.readnoise), R.T.shape)
 
-#For each source, scale (based on count flux) a profile centered on 
-#    the right location with a sigma from above and scale further by integration time
-for i in range(params.pts):
-    sourceFrame += totCountsPerSec[i]*hf.pntProfile(C.T, R.T, rPos[i], cPos[i], sigma, sigma)*params.intTime
+    #Create the thermal signal frame (scaled with integration time) and add it to the original frame
+    darkFrame += np.random.normal(params.thermal, np.sqrt(params.thermal), R.T.shape)*params.intTime
 
-#Generate a new frame that is a Poisson(Gaussian)-distributed version of the sourceFrame
-#  Add the noise frames to this
-frameFinal = flatFrame*(np.random.normal(sourceFrame, np.sqrt(sourceFrame), R.T.shape)) + darkFrame
+    #Clip frame to bitdepth and cast to int
+    darkFrame = np.clip(darkFrame, 0, 2**16-1)
+    darkFrame = darkFrame.astype(int)
 
-#Save final frame a FITS file
-hdu = fits.PrimaryHDU(frameFinal)
-hdul = fits.HDUList([hdu])
-hdul.writeto(f"{params.outdir}/{params.outdir}_{params.save}.fits")
+    hdu.data = darkFrame
+    hdu.header['FRAMETYP'] = "dark"
+    hdul = fits.HDUList([hdu])
+    hdul.writeto(f"{params.outdir}/{params.save}_dark_{i:02d}.fits")
+    params.logger.info("Generated Dark Frame and saved to "+f"{params.outdir}/{params.save}_dark_{i:02d}.fits")
+
+    #############################################
+    ####   Light Frames
+    #############################################
+    hdu = hdu.copy()
+    #Create a clean light pollution frame scaling the avg sky brightness by the integration time
+    sourceFrame = np.ones(R.T.shape)*params.pollution * params.intTime
+
+    #For each source, scale (based on count flux) a profile centered on 
+    #    the right location with a sigma from above and scale further by integration time
+    for j in range(params.pts):
+        sourceFrame += totCountsPerSec[j]*hf.pntProfile(C.T, R.T, rPos[j], cPos[j], sigma, sigma)*params.intTime
+
+    #Generate a new frame that is a Poisson(Gaussian)-distributed version of the sourceFrame
+    #  Add the noise frames to this
+    frameFinal = flatFrame*(np.random.normal(sourceFrame, np.sqrt(sourceFrame), R.T.shape)) + darkFrame
+
+    #Clip frame to bitdepth and cast to int
+    np.clip(frameFinal, 0, 2**16 - 1)
+    frameFinal = frameFinal.astype(int)
+    hdu.data = frameFinal
+    hdu.header['FRAMETYP'] = "light"
+    hdul = fits.HDUList([hdu])
+    hdul.writeto(f"{params.outdir}/{params.save}_uncal_{i:02d}.fits")
+    params.logger.info("Generated Light Frame and saved to "+f"{params.outdir}/{params.save}_uncal_{i:02d}.fits")
+
+params.logger.info(f"{params.ncalibration}x3={params.ncalibration*3} frames should now exist in the directory {params.output}.")
+params.logger.info("Successful completion of fits-emulator. Clear skies!")
