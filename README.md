@@ -47,7 +47,7 @@ Submit github issue with any quesitons or concerns.
 ```
 
 For example: 
-`python3 generate.py -O test -W 1600 -H 1100 -p 14  -f 6500 -s 9 --seeing 2 --pollution 1000 --thermal 500 --readnoise 50 -t 5 --save test -c 2``
+`python3 generate.py -O test -W 1600 -H 1100 -p 14  -f 6500 -s 9 --seeing 2 --pollution 1000 --thermal 500 --readnoise 50 -t 5 --save test -c 2`
 
 
 
