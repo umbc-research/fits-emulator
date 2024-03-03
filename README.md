@@ -2,6 +2,9 @@
 Emulate observations of seeing-limited point sources recorded in FITS files
 
 
+# Resources
+https://homepage.physics.uiowa.edu/~pkaaret/2018s_a4850/Lab02_noise.html
+
 # Environment Setup
 python3 -m virtualenv venv  
 created virtual environment CPython3.9.6.final.0-64 in 386ms
@@ -20,7 +23,7 @@ setuptools 69.1.0
 wheel      0.42.0
 (venv) [proutyr1@/Users/proutyr1/Documents/git/fits-emulator]
 
-pip3 install numpy matplotlib astropy scipy
+pip3 install numpy matplotlib astropy scipy argparse
 pip list          
 Package             Version
 ------------------- -------------------
