@@ -41,7 +41,7 @@ def setArgs():
                         )
 
     # Specify Version flag
-    parser.add_argument('--version', '-V', '-version', action='version', version='%(prog)s Version 0.0, 20240304')
+    parser.add_argument('--version', '-V', '-version', action='version', version='%(prog)s Version 1.0, 20240303')
 
     ## REQUIRED ARGUMENTS
     required = parser.add_argument_group('required arguments')
