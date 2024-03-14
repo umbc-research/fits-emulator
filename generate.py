@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 import pprint
 import logging
 import datetime
-import os
+import os, sys
 from astropy.io import fits
 
 import helper_funcs as hf
@@ -45,6 +45,10 @@ params.logger.debug(f"Logger made with debugging level set.")
 ####   Begin!
 #############################################
 
+seed = 0
+np.random.seed(seed)
+params.logger.info(f"Numpy Random Seed used: {seed}")
+
 #Generate p point source object positions and total count flux
 rPos = np.random.randint(0,params.width,params.pts)
 cPos = np.random.randint(0,params.height,params.pts)
@@ -62,6 +66,34 @@ sigma = (np.pi * params.focalLength * 1000 * params.seeing /params.pixsize / 180
 
 params.logger.info(f"Seeing of {params.seeing}[\'\'/pix] on detector with pixel size {params.pixsize}[um] and on scope with focal len {params.focalLength}[mm] translates to a std of of {sigma}.")
 
+
+
+
+
+params.logger.info(f"Generating bad pixels.")
+
+#############################################
+####   Bad Pixels
+#############################################
+#Create the readnoise frame
+badPixels = np.random.random(R.T.shape)
+#Set some proportion of bad pixels to be baddddd
+badPixelMap=np.where(badPixels>0.99, 0, 1)
+
+#Save flat frame a FITS file
+hdu = fits.PrimaryHDU(badPixelMap)
+hdu.header['FRAMETYP'] = "badPx"
+hdu.header['INSTRUME'] = 'fits-emulator'
+hdu.header['XPIXSZ']   = params.pixsize
+hdu.header['YPIXSZ']   = params.pixsize
+hdu.header['EXPTIME']  = params.intTime
+hdu.header['NAXIS1']   = params.width
+hdu.header['NAXIS2']   = params.height
+hdu.header['GAIN']     = 0
+hdul = fits.HDUList([hdu])
+hdul.writeto(f"{params.outdir}/{params.save}_badPx_{i:02d}.fits")
+params.logger.info("Generated Bad Pixel Frame and saved to "+f"{params.outdir}/{params.save}_badPx_{i:02d}.fits")
+
 for i in range(params.ncalibration):
     params.logger.info(f"Generating the {i}-th set of frames.")
     #############################################
@@ -76,15 +108,9 @@ for i in range(params.ncalibration):
     flatFrame = flatFrame.astype(int)
 
     #Save flat frame a FITS file
-    hdu = fits.PrimaryHDU(flatFrame)
+    hdu = hdu.copy()
+    hdu.data = flatFrame
     hdu.header['FRAMETYP'] = "flat"
-    hdu.header['INSTRUME'] = 'fits-emulator'
-    hdu.header['XPIXSZ']    = params.pixsize
-    hdu.header['YPIXSZ']    = params.pixsize
-    hdu.header['EXPTIME']   = params.intTime
-    hdu.header['NAXIS1']   = params.width
-    hdu.header['NAXIS2']   = params.height
-    hdu.header['GAIN']   = 0
     hdul = fits.HDUList([hdu])
     hdul.writeto(f"{params.outdir}/{params.save}_flat_{i:02d}.fits")
     params.logger.info("Generated Flat Frame and saved to "+f"{params.outdir}/{params.save}_flat_{i:02d}.fits")
@@ -134,5 +160,5 @@ for i in range(params.ncalibration):
     hdul.writeto(f"{params.outdir}/{params.save}_uncal_{i:02d}.fits")
     params.logger.info("Generated Light Frame and saved to "+f"{params.outdir}/{params.save}_uncal_{i:02d}.fits")
 
-params.logger.info(f"{params.ncalibration}x3={params.ncalibration*3} frames should now exist in the directory {params.output}.")
+params.logger.info(f"{params.ncalibration}x3={params.ncalibration*3} frames should now exist in the directory {params.outdir}.")
 params.logger.info("Successful completion of fits-emulator. Clear skies!")
