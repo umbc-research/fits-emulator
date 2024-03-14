@@ -78,7 +78,7 @@ params.logger.info(f"Generating bad pixels.")
 #Create the readnoise frame
 badPixels = np.random.random(R.T.shape)
 #Set some proportion of bad pixels to be baddddd
-badPixelMap=np.where(badPixels>0.99, 0, 1)
+badPixelMap=np.where(badPixels>0.99, 1, 0)
 
 #Save flat frame a FITS file
 hdu = fits.PrimaryHDU(badPixelMap)
@@ -91,8 +91,8 @@ hdu.header['NAXIS1']   = params.width
 hdu.header['NAXIS2']   = params.height
 hdu.header['GAIN']     = 0
 hdul = fits.HDUList([hdu])
-hdul.writeto(f"{params.outdir}/{params.save}_badPx_{i:02d}.fits")
-params.logger.info("Generated Bad Pixel Frame and saved to "+f"{params.outdir}/{params.save}_badPx_{i:02d}.fits")
+hdul.writeto(f"{params.outdir}/{params.save}_badPx.fits")
+params.logger.info("Generated Bad Pixel Frame and saved to "+f"{params.outdir}/{params.save}_badPx.fits")
 
 for i in range(params.ncalibration):
     params.logger.info(f"Generating the {i}-th set of frames.")
@@ -104,6 +104,7 @@ for i in range(params.ncalibration):
     flatFrame *= np.random.randint(35000,55000)
 
     #Clip frame to bitdepth and cast to int
+    flatFrame *= np.where(badPixelMap==1, 2**16 - 1, 1)
     flatFrame = np.clip(flatFrame, 0, 2**16 - 1)
     flatFrame = flatFrame.astype(int)
 
@@ -126,6 +127,7 @@ for i in range(params.ncalibration):
     darkFrame += np.random.normal(params.thermal, np.sqrt(params.thermal), R.T.shape)*params.intTime
 
     #Clip frame to bitdepth and cast to int
+    darkFrame *= np.where(badPixelMap==1, 2**16 - 1, 1)
     darkFrame = np.clip(darkFrame, 0, 2**16-1)
     darkFrame = darkFrame.astype(int)
 
@@ -149,10 +151,11 @@ for i in range(params.ncalibration):
 
     #Generate a new frame that is a Poisson(Gaussian)-distributed version of the sourceFrame
     #  Add the noise frames to this
-    frameFinal = flatFrame*(np.random.normal(sourceFrame, np.sqrt(sourceFrame), R.T.shape)) + darkFrame
+    frameFinal = flatFrame/np.mean(flatFrame)*(np.random.normal(sourceFrame, np.sqrt(sourceFrame), R.T.shape)) + darkFrame
 
     #Clip frame to bitdepth and cast to int
-    np.clip(frameFinal, 0, 2**16 - 1)
+    frameFinal *= np.where(badPixelMap==1, 2**16 - 1, 1)
+    frameFinal = np.clip(frameFinal, 0, 2**16 - 1)
     frameFinal = frameFinal.astype(int)
     hdu.data = frameFinal
     hdu.header['FRAMETYP'] = "light"
