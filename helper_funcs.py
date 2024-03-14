@@ -105,6 +105,7 @@ def setArgs():
     required.add_argument("--width", '-W', '-width', metavar="int", action="store", type=int, required=True,\
                         help="Number of pixels in horizontal dimensions",\
                         )
+    
     # Specify height of frame
     required.add_argument("--height", '-H', '-height', metavar="int", action="store", type=int, required=True,\
                         help="Number of pixels in vertical dimensions",\
