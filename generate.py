@@ -102,7 +102,7 @@ for i in range(params.ncalibration):
     flatFrame = hf.pntProfile(C.T, R.T, params.width/2, params.height/2, params.width/1.5, params.height/1.5 )
     flatFrame /= np.mean(flatFrame)
     flatFrame *= np.random.randint(35000,55000)
-
+    
     #Clip frame to bitdepth and cast to int
     flatFrame *= np.where(badPixelMap==1, 2**16 - 1, 1)
     flatFrame = np.clip(flatFrame, 0, 2**16 - 1)
@@ -112,6 +112,8 @@ for i in range(params.ncalibration):
     hdu = hdu.copy()
     hdu.data = flatFrame
     hdu.header['FRAMETYP'] = "flat"
+    hdu.header['FILTER'] = "Q"
+    hdu.header['EXPTIME'] = "10000"
     hdul = fits.HDUList([hdu])
     hdul.writeto(f"{params.outdir}/{params.save}_flat_{i:02d}.fits")
     params.logger.info("Generated Flat Frame and saved to "+f"{params.outdir}/{params.save}_flat_{i:02d}.fits")
@@ -133,6 +135,8 @@ for i in range(params.ncalibration):
 
     hdu.data = darkFrame
     hdu.header['FRAMETYP'] = "dark"
+    hdu.header['FILTER'] = "Q"
+    hdu.header['EXPTIME'] = "10000"
     hdul = fits.HDUList([hdu])
     hdul.writeto(f"{params.outdir}/{params.save}_dark_{i:02d}.fits")
     params.logger.info("Generated Dark Frame and saved to "+f"{params.outdir}/{params.save}_dark_{i:02d}.fits")
@@ -159,6 +163,9 @@ for i in range(params.ncalibration):
     frameFinal = frameFinal.astype(int)
     hdu.data = frameFinal
     hdu.header['FRAMETYP'] = "light"
+    hdu.header['FILTER'] = "Q"
+    hdu.header['EXPTIME'] = "10000"
+
     hdul = fits.HDUList([hdu])
     hdul.writeto(f"{params.outdir}/{params.save}_uncal_{i:02d}.fits")
     params.logger.info("Generated Light Frame and saved to "+f"{params.outdir}/{params.save}_uncal_{i:02d}.fits")
