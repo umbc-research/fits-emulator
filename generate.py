@@ -90,6 +90,8 @@ hdu.header['EXPTIME']  = params.intTime
 hdu.header['NAXIS1']   = params.width
 hdu.header['NAXIS2']   = params.height
 hdu.header['GAIN']     = 0
+hdu.header['FILTER'] = "Z"
+
 hdul = fits.HDUList([hdu])
 hdul.writeto(f"{params.outdir}/{params.save}_badPx.fits")
 params.logger.info("Generated Bad Pixel Frame and saved to "+f"{params.outdir}/{params.save}_badPx.fits")
@@ -135,8 +137,8 @@ for i in range(params.ncalibration):
 
     hdu.data = darkFrame
     hdu.header['FRAMETYP'] = "dark"
-    hdu.header['FILTER'] = "Q"
     hdu.header['EXPTIME'] = "10000"
+    hdu.header['FILTER'] = "Z"
     hdul = fits.HDUList([hdu])
     hdul.writeto(f"{params.outdir}/{params.save}_dark_{i:02d}.fits")
     params.logger.info("Generated Dark Frame and saved to "+f"{params.outdir}/{params.save}_dark_{i:02d}.fits")
