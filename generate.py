@@ -138,6 +138,7 @@ for i in range(params.ncalibration):
     hdu.data = darkFrame
     hdu.header['FRAMETYP'] = "dark"
     hdu.header['EXPTIME'] = "10000"
+    hdu.header.remove('FILTER')
     hdul = fits.HDUList([hdu])
     hdul.writeto(f"{params.outdir}/{params.save}_dark_{i:02d}.fits")
     params.logger.info("Generated Dark Frame and saved to "+f"{params.outdir}/{params.save}_dark_{i:02d}.fits")
