@@ -83,7 +83,7 @@ badPixelMap=np.where(badPixels>0.99, 1, 0)
 #Save flat frame a FITS file
 hdu = fits.PrimaryHDU(badPixelMap)
 hdu.header['FRAMETYP'] = "badPx"
-hdu.header['INSTRUME'] = 'fits-emulator'
+hdu.header['INSTRUME'] = "fits-emulator"
 hdu.header['XPIXSZ']   = params.pixsize
 hdu.header['YPIXSZ']   = params.pixsize
 hdu.header['EXPTIME']  = params.intTime
@@ -94,7 +94,7 @@ hdu.header['FILTER'] = "Z"
 
 hdul = fits.HDUList([hdu])
 hdul.writeto(f"{params.outdir}/{params.save}_badPx.fits")
-params.logger.info("Generated Bad Pixel Frame and saved to "+f"{params.outdir}/{params.save}_badPx.fits")
+params.logger.info(f"Generated Bad Pixel Frame and saved to {params.outdir}/{params.save}_badPx.fits")
 
 for i in range(params.ncalibration):
     params.logger.info(f"Generating the {i}-th set of frames.")
@@ -118,7 +118,7 @@ for i in range(params.ncalibration):
     hdu.header['EXPTIME'] = "10000"
     hdul = fits.HDUList([hdu])
     hdul.writeto(f"{params.outdir}/{params.save}_flat_{i:02d}.fits")
-    params.logger.info("Generated Flat Frame and saved to "+f"{params.outdir}/{params.save}_flat_{i:02d}.fits")
+    params.logger.info(f"Generated Flat Frame and saved to {params.outdir}/{params.save}_flat_{i:02d}.fits")
 
     #############################################
     ####   Dark Frames
