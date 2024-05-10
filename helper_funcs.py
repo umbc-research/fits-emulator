@@ -40,16 +40,22 @@ def setArgs():
                         help="Number of seconds between frames\nOnly required if --number > 1",\
                         )
 
+    # Specify number of calibration frames to generate
+    parser.add_argument("--ncalibration", '-c', metavar="int", action="store", type=int, required=False, default=1,\
+                        help="DEFAULT IS 1.\nNumber of calibration frames to take.",\
+                        )
+    
+    # Specify number of frames to generate
+    parser.add_argument("--nframes", metavar="int", action="store", type=int, required=False, default=1,\
+                        help="DEFAULT IS 1.\nNumber of light frames to take.",\
+                        )
+
     # Specify Version flag
     parser.add_argument('--version', '-V', '-version', action='version', version='%(prog)s Version 1.0, 20240303')
 
     ## REQUIRED ARGUMENTS
     required = parser.add_argument_group('required arguments')
 
-    # Specify number of frames to generate
-    required.add_argument("--ncalibration", '-c', metavar="int", action="store", type=int, required=True,\
-                        help="DEFAULT IS 1.\nNumber of calibration frames to take.",\
-                        )
     # Save Flag
     required.add_argument('--save', default="", action='store', metavar="title",\
                         help="Save FITS of frame",\
@@ -58,7 +64,7 @@ def setArgs():
     
     # Specify exposure time
     required.add_argument("--intTime", '-t', metavar="float", action="store", type=float, required=True,\
-                        help="Integration time",\
+                        help="Integration time in s",\
                         )
 
     # Specify focal length

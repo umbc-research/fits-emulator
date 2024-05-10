@@ -96,8 +96,12 @@ hdul = fits.HDUList([hdu])
 hdul.writeto(f"{params.outdir}/{params.save}_badPx.fits")
 params.logger.info(f"Generated Bad Pixel Frame and saved to {params.outdir}/{params.save}_badPx.fits")
 
+
+#############################################
+####   Calibration Frames
+#############################################
 for i in range(params.ncalibration):
-    params.logger.info(f"Generating the {i}-th set of frames.")
+    params.logger.info(f"Generating the {i}-th set of calibration frames.")
     #############################################
     ####   Flat Frames
     #############################################
@@ -110,16 +114,17 @@ for i in range(params.ncalibration):
     flatFrame = np.clip(flatFrame, 0, 2**16 - 1)
     flatFrame = flatFrame.astype(int)
 
-    #Save flat frame a FITS file
+    #Generate flat frame HDU for FITS file
     hdu = hdu.copy()
     hdu.data = flatFrame
     hdu.header['FRAMETYP'] = "flat"
     hdu.header['FILTER'] = "Q"
     hdu.header['EXPTIME'] = "10000"
     hdul = fits.HDUList([hdu])
+
     hdul.writeto(f"{params.outdir}/{params.save}_flat_{i:02d}.fits")
     params.logger.info(f"Generated Flat Frame and saved to {params.outdir}/{params.save}_flat_{i:02d}.fits")
-
+    
     #############################################
     ####   Dark Frames
     #############################################
@@ -142,6 +147,61 @@ for i in range(params.ncalibration):
     hdul = fits.HDUList([hdu])
     hdul.writeto(f"{params.outdir}/{params.save}_dark_{i:02d}.fits")
     params.logger.info("Generated Dark Frame and saved to "+f"{params.outdir}/{params.save}_dark_{i:02d}.fits")
+
+params.logger.info(f"{params.ncalibration}x2={params.ncalibration*2} calibration frames along with 1 bad pixel map frame should now exist in the directory {params.outdir}.")
+
+
+
+
+
+#############################################
+####   Uncalibrated Frames / Light Frames
+#############################################
+for i in range(params.nframes):
+    params.logger.info(f"Generating the {i}-th set of frames.")
+    #############################################
+    ####   Flat Frames
+    #############################################
+    flatFrame = hf.pntProfile(C.T, R.T, params.width/2, params.height/2, params.width/1.5, params.height/1.5 )
+    flatFrame /= np.mean(flatFrame)
+    flatFrame *= np.random.randint(35000,55000)
+    
+    #Clip frame to bitdepth and cast to int
+    flatFrame *= np.where(badPixelMap==1, 2**16 - 1, 1)
+    flatFrame = np.clip(flatFrame, 0, 2**16 - 1)
+    flatFrame = flatFrame.astype(int)
+
+    #Generate flat frame HDU for FITS file
+    hdu = hdu.copy()
+    hdu.data = flatFrame
+    hdu.header['FRAMETYP'] = "flat"
+    hdu.header['FILTER'] = "Q"
+    hdu.header['EXPTIME'] = "10000"
+    hdul = fits.HDUList([hdu])
+
+    params.logger.info("Generated Flat Frame Data")
+
+    #############################################
+    ####   Dark Frames
+    #############################################
+    hdu = hdu.copy()
+    #Create the readnoise frame
+    darkFrame = np.random.normal(params.readnoise, np.sqrt(params.readnoise), R.T.shape)
+
+    #Create the thermal signal frame (scaled with integration time) and add it to the original frame
+    darkFrame += np.random.normal(params.thermal, np.sqrt(params.thermal), R.T.shape)*params.intTime
+
+    #Clip frame to bitdepth and cast to int
+    darkFrame *= np.where(badPixelMap==1, 2**16 - 1, 1)
+    darkFrame = np.clip(darkFrame, 0, 2**16-1)
+    darkFrame = darkFrame.astype(int)
+
+    hdu.data = darkFrame
+    hdu.header['FRAMETYP'] = "dark"
+    hdu.header['EXPTIME'] = "10000"
+    hdu.header.remove('FILTER')
+    hdul = fits.HDUList([hdu])
+    params.logger.info("Generated Dark Frame Data")
 
     #############################################
     ####   Light Frames
@@ -172,5 +232,5 @@ for i in range(params.ncalibration):
     hdul.writeto(f"{params.outdir}/{params.save}_uncal_{i:02d}.fits")
     params.logger.info("Generated Light Frame and saved to "+f"{params.outdir}/{params.save}_uncal_{i:02d}.fits")
 
-params.logger.info(f"{params.ncalibration}x3={params.ncalibration*3} frames should now exist in the directory {params.outdir}.")
+params.logger.info(f"{params.nframes} frames should now exist in the directory {params.outdir}.")
 params.logger.info("Successful completion of fits-emulator. Clear skies!")
