@@ -26,7 +26,7 @@ required arguments:
                         DEFAULT IS 1. Number of calibration frames to take.
   --save title          Save FITS of frame
   --intTime float, -t float
-                        Integration time
+                        Integration time in s
   --focalLength float, -f float
                         Focal length in mm
   --pixsize float, -s float
