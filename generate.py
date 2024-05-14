@@ -157,7 +157,7 @@ params.logger.info(f"{params.ncalibration}x2={params.ncalibration*2} calibration
 #############################################
 ####   Uncalibrated Frames / Light Frames
 #############################################
-for i in range(params.nframes):
+for i in range(params.number):
     params.logger.info(f"Generating the {i}-th set of frames.")
     #############################################
     ####   Flat Frames
@@ -227,6 +227,8 @@ for i in range(params.nframes):
     hdu.header['FRAMETYP'] = "light"
     hdu.header['FILTER'] = "Q"
     hdu.header['EXPTIME'] = "10000"
+
+    ## Need to add integration time and step variable through dt
 
     hdul = fits.HDUList([hdu])
     hdul.writeto(f"{params.outdir}/{params.save}_uncal_{i:02d}.fits")
