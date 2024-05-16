@@ -6,8 +6,9 @@ Emulate observations of seeing-limited point sources recorded in FITS files
 # How to run
 ```
 python3 generate.py --help
-usage: fits-emulator [-h] [--level INFO|DEBUG] [--number int] [--dt float] [--ncalibration int] [--version] [--save title] --intTime float --focalLength float --pixsize float --seeing float --pollution float --thermal float --readnoise float --pts int --outdir dir --width
-                     int --height int
+usage: fits-emulator [-h] [--level INFO|DEBUG] [--number int] [--dt float] [--ncalibration int] [--version] [--save title] --intTime float
+                     --focalLength float --pixsize float --seeing float --pollution float --thermal float --readnoise float --pts int --outdir dir
+                     --width int --height int
 
 FITS File Emulator for point sources
 
@@ -15,7 +16,8 @@ optional arguments:
   -h, --help            show this help message and exit
   --level INFO|DEBUG, -level INFO|DEBUG
                         Set Logging level to either INFO or DEBUG
-  --number int, -n int  DEFAULT is 1. Number of frames to generate with same field parameters, separated by dt
+  --number int, -n int  DEFAULT is 1. Number of frames to generate with same field parameters, separated by dt (which is required if specifying a
+                        number of frames greater than 1.)
   --dt float, -dt float
                         Number of seconds between frames Only required if --number > 1
   --ncalibration int, -c int

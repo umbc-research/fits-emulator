@@ -32,7 +32,7 @@ def setArgs():
 
     # Specify number of frames to generate
     parser.add_argument("--number", '-n', metavar="int", action="store", type=int, required=False, default=1,\
-                        help="DEFAULT is 1.\nNumber of frames to generate with same field parameters, separated by dt",\
+                        help="DEFAULT is 1.\nNumber of frames to generate with same field parameters, separated by dt (which is required if specifying a number of frames greater than 1.)",\
                         )
     
     # Specify number of seconds between frames to generate
